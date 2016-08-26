@@ -1,6 +1,5 @@
 import java.awt.Dimension;
 import java.io.IOException;
-import java.util.Vector;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JLabel;
@@ -13,13 +12,9 @@ import java.awt.Color;
 import java.awt.BorderLayout;
 import java.awt.geom.Ellipse2D;
 import java.awt.Toolkit;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.geom.Point2D;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.Timer;
-import java.awt.geom.Line2D;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
@@ -31,9 +26,9 @@ import java.io.File;
 import java.io.IOException;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.lang.StringBuilder;
-import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
+import java.awt.Font;
+import java.awt.Shape;
 
 class Base {
 	
@@ -41,6 +36,7 @@ class Base {
     int cx,cy; // x e y do centro da imagem
     Image img; // Imagem mostrada
     Draw draw; // Instancia da classe que faz o desenho
+    Shape hitbox=null;
     
     Base(int a,int b,Image img,Draw d) {
       
@@ -69,6 +65,7 @@ class Character implements ActionListener {
   int cont=0;
   double t=0;
   boolean chamado=true;
+  Rectangle2D.Float hitbox;
   
   Character (int a,int b,Image img,Draw d) {
 	  
@@ -102,6 +99,10 @@ class Character implements ActionListener {
 	
 	x=(int)(rw*Math.cos(Math.toDegrees(t))+c1-(img.getWidth(null))/2)+10;
 	y=(int)(rh*Math.sin(Math.toDegrees(t))+c2-(img.getHeight(null))/2);
+	
+	hitbox.x=x;
+	hitbox.y=y;
+	
 	chamado=true;
 	  
   }
@@ -115,6 +116,7 @@ class Tiro implements ActionListener {
   int cx, cy;
   Image img;
   Draw draw;
+  Rectangle2D.Float hitbox;
   
   Tiro (int a,int b,Image im,Draw d) {
 	  
@@ -131,9 +133,13 @@ class Tiro implements ActionListener {
   public void actionPerformed(ActionEvent e) {
     
     x+=1;
-    draw.repaint((int)x-1,y,img.getWidth(null),img.getHeight(null)+2);
+    draw.repaint((int)x-1,y,img.getWidth(null)+2,img.getHeight(null));
+    hitbox.x=x;
     
-    if (x>1000) {
+    if ((draw.base.get(2)).hitbox.intersects(hitbox)||x>1000) {
+	  
+	  draw.planeta2_life-=5;
+	  draw.repaint(0,0,1000,60);
 	  
 	  timer.stop();
 	  
@@ -161,9 +167,14 @@ class Draw extends Canvas {
   Elipse[] orbitas_um = new Elipse[2];
   Elipse[] orbitas_dois = new Elipse[2];
   
-  Tiro[] tiro1 = new Tiro[3];
   ArrayList <Base> base = new ArrayList<>();
   Character player1;
+  Tiro[] tiro1 = new Tiro[3];
+  
+  int planeta1_life=200;
+  int nave1_life=20;
+  int planeta2_life=200;
+  int nave2_life=20;
   
   Draw () {
 	
@@ -185,15 +196,18 @@ class Draw extends Canvas {
     
     base.add(new Base (0,0,fundo,this));
     Base aux = new Base (200,325,planeta_um,this);
+    aux.hitbox = new Ellipse2D.Float(aux.cx,aux.cy,aux.img.getWidth(null),aux.img.getHeight(null));
     orbitas_um[0] = new Elipse(aux.x,aux.y,110,150);
     orbitas_um[1] = new Elipse(aux.x,aux.y,150,190);
     base.add(aux);
     Base aux2 = new Base (780,325,planeta_dois,this);
+    aux2.hitbox = new Ellipse2D.Float(aux2.cx+8,aux2.cy+8,aux2.img.getWidth(null)-16,aux2.img.getHeight(null)-16);
     orbitas_dois[0] = new Elipse(aux2.x,aux2.y,150,110);
     orbitas_dois[1] = new Elipse(aux2.x,aux2.y,190,150);
     base.add(aux2);
     
     player1 = new Character(aux.x+(int)(orbitas_um[0].elipse.width/2)-nave_um.getWidth(null)/2+10,aux.y-nave_um.getHeight(null)/2,nave_um,this);
+	player1.hitbox = new Rectangle2D.Float(player1.x,player1.y,player1.img.getWidth(null),player1.img.getHeight(null));
 	  
   }
   
@@ -206,11 +220,12 @@ class Draw extends Canvas {
 	fundo(g2);
 	personagem(g2);
 	tiros(g2);
+	dados(g2);
 	
   }
   
   public void fundo (Graphics2D g2) {
-	
+
 	Base b = base.get(0);
 	g2.drawImage(b.img,b.x,b.y,null);
 	
@@ -226,7 +241,6 @@ class Draw extends Canvas {
 	g2.draw(orbitas_um[1].elipse);
 	g2.draw(orbitas_dois[0].elipse);
 	g2.draw(orbitas_dois[1].elipse);
-	g2.setColor (c);
 	  
   }
   
@@ -238,11 +252,31 @@ class Draw extends Canvas {
   
   public void tiros (Graphics2D g2) {
 	
+	g2.setColor (new Color(255,0,0));
+	
 	if (tiro1[0]!=null) g2.drawImage(tiro1[0].img,(int)tiro1[0].x,tiro1[0].y,null);
 	
 	if (tiro1[1]!=null) g2.drawImage(tiro1[1].img,(int)tiro1[1].x,tiro1[1].y,null);
 	
 	if (tiro1[2]!=null) g2.drawImage(tiro1[2].img,(int)tiro1[2].x,tiro1[2].y,null);
+	  
+  }
+  
+  public void dados (Graphics2D g2) {
+		
+	Color c = g2.getColor();
+	g2.setColor (new Color(255,255,255));
+	g2.setFont(new Font("TimesRoman", Font.PLAIN, 30)); 
+	
+	g2.drawString("Vida do Planeta: "+planeta1_life,10,30);
+	g2.drawString("Vida do Planeta: "+planeta2_life,670,30);
+	
+	g2.setFont(new Font("TimesRoman", Font.PLAIN, 25));
+	
+	g2.drawString("Vida da Nave: "+nave1_life,10,60);
+	g2.drawString("Vida da Nave: "+nave2_life,670,60);
+	
+	g2.setColor (c);
 	  
   }
   
@@ -340,11 +374,26 @@ class Teclado extends KeyAdapter {
     
     else if (cod==KeyEvent.VK_SPACE) {
 	  
-	  if (draw.tiro1[0]==null) draw.tiro1[0] = new Tiro(draw.player1.x+draw.player1.img.getWidth(null)+10,draw.player1.y+draw.player1.img.getHeight(null)/2-8,draw.laser,draw);
+	  if (draw.tiro1[0]==null) {
+		
+		draw.tiro1[0] = new Tiro(draw.player1.x+draw.player1.img.getWidth(null)+10,draw.player1.y+draw.player1.img.getHeight(null)/2-8,draw.laser,draw); 
+		draw.tiro1[0].hitbox = new Rectangle2D.Float(draw.tiro1[0].x,draw.tiro1[0].y,draw.tiro1[0].img.getWidth(null),draw.tiro1[0].img.getHeight(null));
+		
+	  }
 	  
-	  else if (draw.tiro1[1]==null) draw.tiro1[1] = new Tiro(draw.player1.x+draw.player1.img.getWidth(null)+10,draw.player1.y+draw.player1.img.getHeight(null)/2-8,draw.laser,draw);
+	  else if (draw.tiro1[1]==null) {
+		  
+		draw.tiro1[1] = new Tiro(draw.player1.x+draw.player1.img.getWidth(null)+10,draw.player1.y+draw.player1.img.getHeight(null)/2-8,draw.laser,draw);
+		draw.tiro1[1].hitbox = new Rectangle2D.Float(draw.tiro1[1].x,draw.tiro1[1].y,draw.tiro1[1].img.getWidth(null),draw.tiro1[1].img.getHeight(null));
+		
+	  }
 	  
-	  else if (draw.tiro1[2]==null) draw.tiro1[2] = new Tiro(draw.player1.x+draw.player1.img.getWidth(null)+10,draw.player1.y+draw.player1.img.getHeight(null)/2-8,draw.laser,draw);
+	  else if (draw.tiro1[2]==null) {
+		  
+		draw.tiro1[2] = new Tiro(draw.player1.x+draw.player1.img.getWidth(null)+10,draw.player1.y+draw.player1.img.getHeight(null)/2-8,draw.laser,draw);
+		draw.tiro1[2].hitbox = new Rectangle2D.Float(draw.tiro1[2].x,draw.tiro1[2].y,draw.tiro1[2].img.getWidth(null),draw.tiro1[2].img.getHeight(null));
+		
+	  }
 	  	
 	}
     
