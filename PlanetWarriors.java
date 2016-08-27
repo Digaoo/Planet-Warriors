@@ -69,7 +69,7 @@ class Character implements ActionListener {
   boolean sentido=false; // true = subindo, false = descendo
   Rectangle2D.Float hitbox;
   
-  Character (int a,int b,Image img,Draw d) {
+  Character (int a,int b,Image img,Draw d,int planet) {
 	  
 	draw=d;
     this.img=img;
@@ -77,7 +77,7 @@ class Character implements ActionListener {
 	y=b;
 	cx=a-(img.getWidth(null))/2;
     cy=b-(img.getHeight(null))/2;
-    planeta = draw.base.get(1);
+    planeta = draw.base.get(planet);
     c1=planeta.x;
     c2=planeta.y;
     rw=(int)draw.orbitas_um[0].elipse.width/2;
@@ -136,6 +136,7 @@ class Tiro implements ActionListener {
   Timer timer = new Timer(30, this);
   int x,y;
   int cx, cy;
+  int vel=5;
   Image img;
   Draw draw;
   Rectangle2D.Float hitbox;
@@ -156,7 +157,7 @@ class Tiro implements ActionListener {
     
     boolean parar=false;
     
-    x+=5;
+    x+=vel;
     draw.repaint();
     hitbox.x=x;
     
@@ -171,7 +172,7 @@ class Tiro implements ActionListener {
 	   
 	}
 	
-	if ((draw.base.get(1)).hitbox.contains(hitbox)) {
+	else if ((draw.base.get(1)).hitbox.contains(hitbox)) {
 	  
 	  draw.planeta1_life-=5;
 	  draw.repaint(0,0,1000,10);
@@ -180,6 +181,14 @@ class Tiro implements ActionListener {
 	  
 	  parar=true;
 	   
+	}
+	
+	else if (draw.player2.hitbox.intersects(hitbox)) {
+	  
+	  draw.nave2_life-=5;
+	  
+	  parar=true;
+	  	
 	}
 	
 	else if (x>1000) {
@@ -212,12 +221,15 @@ class Draw extends JPanel {
   Image planeta_dois = null;
   Image nave_um = null;
   Image nave_dois = null;
-  Image laser=null;
+  Image laser1=null;
+  Image laser2=null;
   Elipse[] orbitas_um = new Elipse[2];
   Elipse[] orbitas_dois = new Elipse[2];
   ArrayList <Base> base = new ArrayList<>();
   Character player1;
+  Character player2;
   Tiro[] tiro1 = new Tiro[3];
+  Tiro[] tiro2 = new Tiro[3];
   int planeta1_life=200;
   int nave1_life=20;
   int planeta2_life=200;
@@ -246,6 +258,7 @@ class Draw extends JPanel {
 	 
   });
   boolean end=false;
+  Cliente cliente=null;
   
   Draw () {
 	
@@ -258,7 +271,8 @@ class Draw extends JPanel {
       planeta_dois = ImageIO.read(new File("Planeta.png"));
       nave_um = ImageIO.read(new File("Nave_1.png"));
       nave_dois = ImageIO.read(new File("Nave_2.png"));
-      laser = ImageIO.read(new File("Laser.png"));
+      laser1 = ImageIO.read(new File("Laser1.png"));
+      laser2 = ImageIO.read(new File("Laser2.png"));
         
     } catch (IOException e) {
     
@@ -279,8 +293,14 @@ class Draw extends JPanel {
     orbitas_dois[1] = new Elipse(aux2.x,aux2.y,160,200);
     base.add(aux2);
     
-    player1 = new Character(aux.x+(int)(orbitas_um[0].elipse.width/2)-nave_um.getWidth(null)/2+10,aux.y-nave_um.getHeight(null)/2,nave_um,this);
+    player1 = new Character(aux.x+(int)(orbitas_um[0].elipse.width/2)-nave_um.getWidth(null)/2+10,aux.y-nave_um.getHeight(null)/2,nave_um,this,1);
 	player1.hitbox = new Rectangle2D.Float(player1.x,player1.y,player1.img.getWidth(null),player1.img.getHeight(null));
+	
+	player2 = new Character(aux2.x-(int)(orbitas_dois[0].elipse.width/2)-nave_dois.getWidth(null)/2-10,aux2.y-nave_dois.getHeight(null)/2,nave_dois,this,2);
+	player2.hitbox = new Rectangle2D.Float(player2.x,player2.y,player2.img.getWidth(null),player2.img.getHeight(null));
+	
+	cliente = new Cliente();
+	cliente.start();
 	  
   }
   
@@ -294,7 +314,7 @@ class Draw extends JPanel {
     go=false;
     contador=3;
     end=false;
-    player1 = player1 = new Character(base.get(1).x+(int)(orbitas_um[0].elipse.width/2)-nave_um.getWidth(null)/2+10,base.get(1).y-nave_um.getHeight(null)/2,nave_um,this);
+    player1 = player1 = new Character(base.get(1).x+(int)(orbitas_um[0].elipse.width/2)-nave_um.getWidth(null)/2+10,base.get(1).y-nave_um.getHeight(null)/2,nave_um,this,1);
 	player1.hitbox = new Rectangle2D.Float(player1.x,player1.y,player1.img.getWidth(null),player1.img.getHeight(null));
 	 
   }
@@ -362,6 +382,11 @@ class Draw extends JPanel {
   public void personagem (Graphics2D g2) {
 	
 	g2.drawImage(player1.img,player1.x,player1.y,null);
+	cliente.put_ang_Nave_elipse(player1.t);
+	
+	player2.t = cliente.get_ang_Nave_elipse_Adv() + Math.PI;
+	player2.coord();
+	g2.drawImage(player2.img,player2.x,player2.y,null);
 	  
   }
   
@@ -374,6 +399,12 @@ class Draw extends JPanel {
 	if (tiro1[1]!=null) g2.drawImage(tiro1[1].img,(int)tiro1[1].x,tiro1[1].y,null);
 	
 	if (tiro1[2]!=null) g2.drawImage(tiro1[2].img,(int)tiro1[2].x,tiro1[2].y,null);
+	
+	if (tiro2[0]!=null) g2.drawImage(tiro2[0].img,(int)tiro2[0].x,tiro2[0].y,null);
+	
+	if (tiro2[1]!=null) g2.drawImage(tiro2[1].img,(int)tiro2[1].x,tiro2[1].y,null);
+	
+	if (tiro2[2]!=null) g2.drawImage(tiro2[2].img,(int)tiro2[2].x,tiro2[2].y,null);
 	  
   }
   
@@ -500,22 +531,52 @@ class Teclado extends KeyAdapter {
 	  
 	  if (draw.tiro1[0]==null) {
 		
-		draw.tiro1[0] = new Tiro(draw.player1.x+draw.player1.img.getWidth(null)+10,draw.player1.y+draw.player1.img.getHeight(null)/2-8,draw.laser,draw); 
+		draw.tiro1[0] = new Tiro(draw.player1.x+draw.player1.img.getWidth(null)+10,draw.player1.y+draw.player1.img.getHeight(null)/2-8,draw.laser1,draw); 
 		draw.tiro1[0].hitbox = new Rectangle2D.Float(draw.tiro1[0].x,draw.tiro1[0].y,draw.tiro1[0].img.getWidth(null)-10,draw.tiro1[0].img.getHeight(null));
+		draw.cliente.put_Pos_Disparo1_X(draw.tiro1[0].x);
+		draw.cliente.put_Pos_Disparo1_Y(draw.tiro1[0].y);
 		
 	  }
 	  
 	  else if (draw.tiro1[1]==null) {
 		  
-		draw.tiro1[1] = new Tiro(draw.player1.x+draw.player1.img.getWidth(null)+10,draw.player1.y+draw.player1.img.getHeight(null)/2-8,draw.laser,draw);
+		draw.tiro1[1] = new Tiro(draw.player1.x+draw.player1.img.getWidth(null)+10,draw.player1.y+draw.player1.img.getHeight(null)/2-8,draw.laser1,draw);
 		draw.tiro1[1].hitbox = new Rectangle2D.Float(draw.tiro1[1].x,draw.tiro1[1].y,draw.tiro1[1].img.getWidth(null)-10,draw.tiro1[1].img.getHeight(null));
+		draw.cliente.put_Pos_Disparo1_X(draw.tiro1[1].x);
+		draw.cliente.put_Pos_Disparo1_Y(draw.tiro1[1].y);
 		
 	  }
 	  
 	  else if (draw.tiro1[2]==null) {
 		  
-		draw.tiro1[2] = new Tiro(draw.player1.x+draw.player1.img.getWidth(null)+10,draw.player1.y+draw.player1.img.getHeight(null)/2-8,draw.laser,draw);
+		draw.tiro1[2] = new Tiro(draw.player1.x+draw.player1.img.getWidth(null)+10,draw.player1.y+draw.player1.img.getHeight(null)/2-8,draw.laser1,draw);
 		draw.tiro1[2].hitbox = new Rectangle2D.Float(draw.tiro1[2].x,draw.tiro1[2].y,draw.tiro1[2].img.getWidth(null)-10,draw.tiro1[2].img.getHeight(null));
+		draw.cliente.put_Pos_Disparo1_X(draw.tiro1[2].x);
+		draw.cliente.put_Pos_Disparo1_Y(draw.tiro1[2].y);
+		
+	  }
+	  
+	  if (draw.tiro2[0]==null) {
+		
+		draw.tiro2[0] = new Tiro(draw.cliente.get_Pos_Disparo1_X_Adv(),draw.cliente.get_Pos_Disparo1_Y_Adv(),draw.laser2,draw); 
+		draw.tiro2[0].vel=-5;
+		draw.tiro2[0].hitbox = new Rectangle2D.Float(draw.tiro2[0].x+10,draw.tiro2[0].y,draw.tiro2[0].img.getWidth(null),draw.tiro2[0].img.getHeight(null));
+		
+	  }
+	  
+	  else if (draw.tiro2[1]==null) {
+		  
+		draw.tiro2[1] = new Tiro(draw.cliente.get_Pos_Disparo1_X_Adv(),draw.cliente.get_Pos_Disparo1_Y_Adv(),draw.laser2,draw); 
+		draw.tiro2[0].vel=-5;
+		draw.tiro2[1].hitbox = new Rectangle2D.Float(draw.tiro2[1].x+10,draw.tiro2[1].y,draw.tiro2[1].img.getWidth(null),draw.tiro2[1].img.getHeight(null));
+		
+	  }
+	  
+	  else if (draw.tiro2[2]==null) {
+		  
+		draw.tiro2[2] = new Tiro(draw.cliente.get_Pos_Disparo1_X_Adv(),draw.cliente.get_Pos_Disparo1_Y_Adv(),draw.laser2,draw);
+		draw.tiro2[0].vel=-5;
+		draw.tiro2[2].hitbox = new Rectangle2D.Float(draw.tiro2[2].x+10,draw.tiro2[2].y,draw.tiro2[2].img.getWidth(null),draw.tiro2[2].img.getHeight(null));
 		
 	  }
 	  	
