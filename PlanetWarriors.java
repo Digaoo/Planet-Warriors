@@ -64,6 +64,7 @@ class Character implements ActionListener {
   int add;
   int cont=0;
   double t=0;
+  double troca=150;
   boolean chamado=true;
   boolean sentido=false; // true = subindo, false = descendo
   Rectangle2D.Float hitbox;
@@ -82,17 +83,23 @@ class Character implements ActionListener {
     rw=(int)draw.orbitas_um[0].elipse.width/2;
     rh=(int)draw.orbitas_um[0].elipse.height/2;
     add=50;
-	timer.start();
 	  
   }
   
   public void actionPerformed(ActionEvent e) {
     
-    if (Math.random()*100>99) sentido = !sentido;
+    if (Math.random()*100>98&&Math.abs(troca)>150) {
+	  
+	  troca=0;
+	  sentido = !sentido;
+	  
+	}
     
     if (sentido) t-=0.001;
     
     else if (!sentido) t+=0.001;
+    
+    troca++;
     
     coord();
     
@@ -102,6 +109,12 @@ class Character implements ActionListener {
     
     chamado=false;
     
+  }
+  
+  public void go () {
+	
+	timer.start();
+	  
   }
   
   public void coord () {
@@ -152,6 +165,8 @@ class Tiro implements ActionListener {
 	  draw.planeta2_life-=5;
 	  draw.repaint(0,0,1000,10);
 	  
+	  if (draw.planeta2_life==0) draw.end=true;
+	  
 	  parar=true;
 	   
 	}
@@ -160,6 +175,8 @@ class Tiro implements ActionListener {
 	  
 	  draw.planeta1_life-=5;
 	  draw.repaint(0,0,1000,10);
+	  
+	  if (draw.planeta1_life==0) draw.end=true;
 	  
 	  parar=true;
 	   
@@ -198,15 +215,37 @@ class Draw extends JPanel {
   Image laser=null;
   Elipse[] orbitas_um = new Elipse[2];
   Elipse[] orbitas_dois = new Elipse[2];
-  
   ArrayList <Base> base = new ArrayList<>();
   Character player1;
   Tiro[] tiro1 = new Tiro[3];
-  
   int planeta1_life=200;
   int nave1_life=20;
   int planeta2_life=200;
   int nave2_life=20;
+  boolean inicio=true;
+  boolean go=false;
+  int contador=3;
+  Timer contagem = new Timer (1000,new ActionListener() {
+	
+	@Override
+	public void actionPerformed(ActionEvent e) {
+	  
+	  contador--;
+	  
+	  if (contador==0) {
+		
+		inicio=false;
+		contagem.stop();
+		player1.go();
+		  
+	  }
+	  
+	  repaint();
+	  	
+	}
+	 
+  });
+  boolean end=false;
   
   Draw () {
 	
@@ -245,6 +284,21 @@ class Draw extends JPanel {
 	  
   }
   
+  public void reset() {
+	
+	planeta1_life=200;
+    nave1_life=20;
+    planeta2_life=200;
+    nave2_life=20;
+    inicio=true;
+    go=false;
+    contador=3;
+    end=false;
+    player1 = player1 = new Character(base.get(1).x+(int)(orbitas_um[0].elipse.width/2)-nave_um.getWidth(null)/2+10,base.get(1).y-nave_um.getHeight(null)/2,nave_um,this);
+	player1.hitbox = new Rectangle2D.Float(player1.x,player1.y,player1.img.getWidth(null),player1.img.getHeight(null));
+	 
+  }
+  
   @Override
   public void paintComponent (Graphics g) { update(g); }
   
@@ -253,11 +307,35 @@ class Draw extends JPanel {
 	 
 	g2 = (Graphics2D) g;
 	
-	
 	fundo(g2);
 	personagem(g2);
 	tiros(g2);
 	dados(g2);
+	if (inicio) entry(g2);
+	if (end) fim(g2);
+	
+  }
+  
+  public void entry (Graphics2D g2) {
+	
+	g2.setColor (new Color(0,0,0,150));
+	g2.fillRect (0,0,1000,600);
+	g2.setColor (new Color(255,255,255));
+	
+	if (!go) {
+	
+	  g2.setFont(new Font(Font.SANS_SERIF, Font.HANGING_BASELINE, 50));
+	  g2.drawString("Aperte Enter Para Continuar",130,340);
+	
+    }
+	
+	else {
+	  
+	  contagem.start();
+	  g2.setFont(new Font(Font.SANS_SERIF, Font.HANGING_BASELINE, 100));
+	  g2.drawString(""+contador,460,340);
+	  	
+	}
 	
   }
   
@@ -317,6 +395,28 @@ class Draw extends JPanel {
 	  
   }
   
+  public void fim (Graphics2D g2) {
+	
+	player1.timer.stop();
+	
+	g2.setColor (new Color(0,0,0,150));
+	g2.fillRect (0,0,1000,600);
+	g2.setColor (new Color(255,255,255));
+	
+	g2.setColor (new Color(0,255,0));
+	g2.setFont(new Font(Font.SANS_SERIF, Font.HANGING_BASELINE, 50));
+	
+	g2.drawString("Fim de Jogo !",325,310);
+	
+	if (planeta1_life==0) g2.drawString("Player 2 WINS !",130,370);
+	
+	else g2.drawString("Player 1 WINS !",295,370);
+	
+	g2.setFont(new Font(Font.SANS_SERIF, Font.HANGING_BASELINE, 30));
+	g2.drawString("Aperte Enter Para Jogar Novamente ",220,560);
+	  
+  }
+  
 }
 
 class Elipse {
@@ -334,12 +434,14 @@ class Elipse {
 class Teclado extends KeyAdapter {
   
   Draw draw;
+  JFrame jan;
   boolean sobe=true;
   boolean desce=true;
   
-  Teclado (Draw aux2) {
+  Teclado (Draw aux,JFrame j) {
 	  
-	draw = aux2;
+	draw = aux;
+	jan=j;
 	  
   }
 
@@ -348,7 +450,7 @@ class Teclado extends KeyAdapter {
 	  
 	int cod = e.getKeyCode();
     
-    if ((cod==KeyEvent.VK_LEFT||cod==KeyEvent.VK_A)&&desce) { 
+    if ((cod==KeyEvent.VK_LEFT||cod==KeyEvent.VK_A)&&desce&&!draw.inicio&&!draw.end) { 
 	  
 	  if (draw.player1.cont==1) { 
 		  
@@ -371,7 +473,7 @@ class Teclado extends KeyAdapter {
 	  	
 	}
     
-    else if ((cod==KeyEvent.VK_RIGHT||cod==KeyEvent.VK_D)&&sobe) { 
+    else if ((cod==KeyEvent.VK_RIGHT||cod==KeyEvent.VK_D)&&sobe&&!draw.inicio&&!draw.end) { 
 	
 	  if (draw.player1.cont==0) { 
 		  
@@ -394,7 +496,7 @@ class Teclado extends KeyAdapter {
 	
 	}
     
-    else if (cod==KeyEvent.VK_SPACE) {
+    else if (cod==KeyEvent.VK_SPACE&&!draw.inicio&&!draw.end) {
 	  
 	  if (draw.tiro1[0]==null) {
 		
@@ -419,6 +521,26 @@ class Teclado extends KeyAdapter {
 	  	
 	}
     
+    else if (cod==KeyEvent.VK_ENTER) {
+	  
+	  if (draw.inicio) {
+	  
+	    draw.go=true;
+	    draw.repaint();
+	    
+	  }
+	  
+	  else if (draw.end) {
+		
+		draw.reset();
+		draw.repaint();
+		  
+	  }
+	  
+	  else return;
+	  
+	}
+    
     else return;
     
     draw.player1.coord();
@@ -436,10 +558,10 @@ class PlanetWarriors {
 	PlanetWarriors pw = new PlanetWarriors();
 	Draw draw = new Draw();
 	
-	pw.jan.setSize(new Dimension(1000,800));
+	pw.jan.setSize(new Dimension(1000,600));
 	pw.jan.setResizable(false);
 	pw.jan.add(draw);
-	pw.jan.addKeyListener(new Teclado(draw));
+	pw.jan.addKeyListener(new Teclado(draw,pw.jan));
 	pw.jan.setVisible(true);
 	  
   }
