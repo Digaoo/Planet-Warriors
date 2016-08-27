@@ -53,7 +53,7 @@ class Base {
 
 class Character implements ActionListener {
   
-  Timer timer = new Timer(33, this);
+  Timer timer = new Timer(40, this);
   int x,y;
   int cx, cy;
   Image img;
@@ -65,6 +65,7 @@ class Character implements ActionListener {
   int cont=0;
   double t=0;
   boolean chamado=true;
+  boolean sentido=false; // true = subindo, false = descendo
   Rectangle2D.Float hitbox;
   
   Character (int a,int b,Image img,Draw d) {
@@ -80,16 +81,24 @@ class Character implements ActionListener {
     c2=planeta.y;
     rw=(int)draw.orbitas_um[0].elipse.width/2;
     rh=(int)draw.orbitas_um[0].elipse.height/2;
-    add=40;
+    add=50;
 	timer.start();
 	  
   }
   
   public void actionPerformed(ActionEvent e) {
     
+    if (Math.random()*100>99) sentido = !sentido;
+    
+    if (sentido) t-=0.001;
+    
+    else if (!sentido) t+=0.001;
+    
+    coord();
+    
     if (chamado)
     
-      draw.repaint(x-12,y-15,img.getWidth(null)+24,img.getHeight(null)+30);
+      draw.repaint();
     
     chamado=false;
     
@@ -111,7 +120,7 @@ class Character implements ActionListener {
 
 class Tiro implements ActionListener {
   
-  Timer timer = new Timer(50, this);
+  Timer timer = new Timer(30, this);
   int x,y;
   int cx, cy;
   Image img;
@@ -132,14 +141,37 @@ class Tiro implements ActionListener {
   
   public void actionPerformed(ActionEvent e) {
     
-    x+=1;
-    draw.repaint((int)x-1,y,img.getWidth(null)+2,img.getHeight(null));
+    boolean parar=false;
+    
+    x+=5;
+    draw.repaint();
     hitbox.x=x;
     
-    if ((draw.base.get(2)).hitbox.intersects(hitbox)||x>1000) {
+    if ((draw.base.get(2)).hitbox.intersects(hitbox)) {
 	  
 	  draw.planeta2_life-=5;
-	  draw.repaint(0,0,1000,60);
+	  draw.repaint(0,0,1000,10);
+	  
+	  parar=true;
+	   
+	}
+	
+	if ((draw.base.get(1)).hitbox.contains(hitbox)) {
+	  
+	  draw.planeta1_life-=5;
+	  draw.repaint(0,0,1000,10);
+	  
+	  parar=true;
+	   
+	}
+	
+	else if (x>1000) {
+	  
+	  parar=true;
+	  	
+    }
+    
+    if (parar) {
 	  
 	  timer.stop();
 	  
@@ -148,14 +180,14 @@ class Tiro implements ActionListener {
 	  else if(draw.tiro1[1]!=null&&draw.tiro1[1].equals(this)) draw.tiro1[1]=null;
 	  
 	  else if(draw.tiro1[2]!=null&&draw.tiro1[2].equals(this)) draw.tiro1[2]=null;
-	   
+	  	
 	}
     
   }
   	
 }
 
-class Draw extends Canvas {
+class Draw extends JPanel {
   
   Graphics2D g2;
   Image fundo = null;
@@ -178,6 +210,8 @@ class Draw extends Canvas {
   
   Draw () {
 	
+	super(true);
+	
 	try {
         
       fundo = ImageIO.read(new File("Estrelas.jpg"));
@@ -198,12 +232,12 @@ class Draw extends Canvas {
     Base aux = new Base (200,325,planeta_um,this);
     aux.hitbox = new Ellipse2D.Float(aux.cx,aux.cy,aux.img.getWidth(null),aux.img.getHeight(null));
     orbitas_um[0] = new Elipse(aux.x,aux.y,110,150);
-    orbitas_um[1] = new Elipse(aux.x,aux.y,150,190);
+    orbitas_um[1] = new Elipse(aux.x,aux.y,160,200);
     base.add(aux);
     Base aux2 = new Base (780,325,planeta_dois,this);
     aux2.hitbox = new Ellipse2D.Float(aux2.cx+8,aux2.cy+8,aux2.img.getWidth(null)-16,aux2.img.getHeight(null)-16);
-    orbitas_dois[0] = new Elipse(aux2.x,aux2.y,150,110);
-    orbitas_dois[1] = new Elipse(aux2.x,aux2.y,190,150);
+    orbitas_dois[0] = new Elipse(aux2.x,aux2.y,110,150);
+    orbitas_dois[1] = new Elipse(aux2.x,aux2.y,160,200);
     base.add(aux2);
     
     player1 = new Character(aux.x+(int)(orbitas_um[0].elipse.width/2)-nave_um.getWidth(null)/2+10,aux.y-nave_um.getHeight(null)/2,nave_um,this);
@@ -212,10 +246,13 @@ class Draw extends Canvas {
   }
   
   @Override
-  public void paint (Graphics g) {
-	
-	super.paint(g);
+  public void paintComponent (Graphics g) { update(g); }
+  
+  @Override
+  public void update (Graphics g) {
+	 
 	g2 = (Graphics2D) g;
+	
 	
 	fundo(g2);
 	personagem(g2);
@@ -297,7 +334,8 @@ class Elipse {
 class Teclado extends KeyAdapter {
   
   Draw draw;
-  boolean ok=true;
+  boolean sobe=true;
+  boolean desce=true;
   
   Teclado (Draw aux2) {
 	  
@@ -309,10 +347,8 @@ class Teclado extends KeyAdapter {
   public void keyPressed (KeyEvent e) {
 	  
 	int cod = e.getKeyCode();
-	int x,y;
-	boolean caso=false;
     
-    if ((cod==KeyEvent.VK_LEFT||cod==KeyEvent.VK_A)&&ok) { 
+    if ((cod==KeyEvent.VK_LEFT||cod==KeyEvent.VK_A)&&desce) { 
 	  
 	  if (draw.player1.cont==1) { 
 		  
@@ -330,12 +366,12 @@ class Teclado extends KeyAdapter {
 		
 	  }
 	  
-	  caso=true;
-	  ok=false;
+	  sobe=true;
+	  desce=false;
 	  	
 	}
     
-    else if ((cod==KeyEvent.VK_RIGHT||cod==KeyEvent.VK_D)&&ok) { 
+    else if ((cod==KeyEvent.VK_RIGHT||cod==KeyEvent.VK_D)&&sobe) { 
 	
 	  if (draw.player1.cont==0) { 
 		  
@@ -353,23 +389,9 @@ class Teclado extends KeyAdapter {
 		
 	  }
 	  
-	  caso=true;
-	  ok=false;
+	  desce=true;
+	  sobe=false;
 	
-	}
-
-    else if (cod==KeyEvent.VK_UP||cod==KeyEvent.VK_W) {
-		
-	  draw.player1.t-=0.001;
-	  ok=true;
-	  
-	}
-    
-    else if (cod==KeyEvent.VK_DOWN||cod==KeyEvent.VK_S) {
-	  
-	  ok=true;
-	  draw.player1.t+=0.001;
-	  
 	}
     
     else if (cod==KeyEvent.VK_SPACE) {
@@ -377,21 +399,21 @@ class Teclado extends KeyAdapter {
 	  if (draw.tiro1[0]==null) {
 		
 		draw.tiro1[0] = new Tiro(draw.player1.x+draw.player1.img.getWidth(null)+10,draw.player1.y+draw.player1.img.getHeight(null)/2-8,draw.laser,draw); 
-		draw.tiro1[0].hitbox = new Rectangle2D.Float(draw.tiro1[0].x,draw.tiro1[0].y,draw.tiro1[0].img.getWidth(null),draw.tiro1[0].img.getHeight(null));
+		draw.tiro1[0].hitbox = new Rectangle2D.Float(draw.tiro1[0].x,draw.tiro1[0].y,draw.tiro1[0].img.getWidth(null)-10,draw.tiro1[0].img.getHeight(null));
 		
 	  }
 	  
 	  else if (draw.tiro1[1]==null) {
 		  
 		draw.tiro1[1] = new Tiro(draw.player1.x+draw.player1.img.getWidth(null)+10,draw.player1.y+draw.player1.img.getHeight(null)/2-8,draw.laser,draw);
-		draw.tiro1[1].hitbox = new Rectangle2D.Float(draw.tiro1[1].x,draw.tiro1[1].y,draw.tiro1[1].img.getWidth(null),draw.tiro1[1].img.getHeight(null));
+		draw.tiro1[1].hitbox = new Rectangle2D.Float(draw.tiro1[1].x,draw.tiro1[1].y,draw.tiro1[1].img.getWidth(null)-10,draw.tiro1[1].img.getHeight(null));
 		
 	  }
 	  
 	  else if (draw.tiro1[2]==null) {
 		  
 		draw.tiro1[2] = new Tiro(draw.player1.x+draw.player1.img.getWidth(null)+10,draw.player1.y+draw.player1.img.getHeight(null)/2-8,draw.laser,draw);
-		draw.tiro1[2].hitbox = new Rectangle2D.Float(draw.tiro1[2].x,draw.tiro1[2].y,draw.tiro1[2].img.getWidth(null),draw.tiro1[2].img.getHeight(null));
+		draw.tiro1[2].hitbox = new Rectangle2D.Float(draw.tiro1[2].x,draw.tiro1[2].y,draw.tiro1[2].img.getWidth(null)-10,draw.tiro1[2].img.getHeight(null));
 		
 	  }
 	  	
@@ -399,16 +421,7 @@ class Teclado extends KeyAdapter {
     
     else return;
     
-    if (caso) {
-	  
-	  x=draw.player1.x;
-	  y=draw.player1.y;
-      draw.player1.coord();
-      draw.repaint(x,y,draw.player1.img.getWidth(null),draw.player1.img.getHeight(null));
-      
-    }
-    
-    else draw.player1.coord();
+    draw.player1.coord();
     
   }
   
