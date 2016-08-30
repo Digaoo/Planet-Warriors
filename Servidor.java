@@ -53,8 +53,12 @@ class Servindo extends Thread {
       }while(!pronto_para_inicio); // segura o servidor enquanto o cliente em questao nao esta pronto.
       numero_jogadores_prontos++;
       do{
-        distribui_dados[0].writeBoolean(pronto_para_inicio); // envia o estado do jogador para seu adversario.
-        distribui_dados[1].writeBoolean(pronto_para_inicio); // envia o estado do jogador para seu adversario.
+        if(numero_jogadores_prontos == 1)
+          distribui_dados[0].writeBoolean(pronto_para_inicio); // envia o estado do jogador para seu adversario.
+        else{
+          distribui_dados[1].writeBoolean(pronto_para_inicio); // envia o estado do jogador para seu adversario.
+          distribui_dados[0].writeBoolean(pronto_para_inicio); // envia o estado do jogador para seu adversario.
+        }
       }while(numero_jogadores_prontos < 2); // segura o servidor enquanto ambos os clientes nao estao prontos.
     }catch(IOException e){
       System.out.println(e);
@@ -105,8 +109,12 @@ class Servindo extends Thread {
         System.out.println(e);
       }
     }while (estado_jogo);
-    recebe_dados_cliente[identificador_jogador].close();
-    distribui_dados[identificador_jogador].close();
-    cliente.close();
+    try{
+      recebe_dados_cliente[identificador_jogador].close();
+      distribui_dados[identificador_jogador].close();
+      cliente.close();
+    }catch(IOException e){
+      System.out.println(e);
+    }
   }
 }
