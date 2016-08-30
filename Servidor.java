@@ -19,16 +19,17 @@ public class Servidor {
 
 class Servindo extends Thread {
   static DataOutputStream distribui_dados[] = new DataOutputStream[2];  // alocação do vetor de stream de saida de dados do servidor para os clientes;
-  static DataInputStream recebe_dados_cliente[] = new DataInputStream[2];  // alocação do vetor de stream de entrada de dados do servidor para os clientes;
+  static DataInputStream recebe_dados_cliente[] = new DataInputStream[2];  // alocação do vetor de stream de saida de dados do servidor para os clientes;
   Socket cliente;
-  private double ang_Nave_elipse;
-  private int Pos_Disparo1_X;
-  private int Pos_Disparo1_Y;
-  private int Pos_Disparo2_X;
-  private int Pos_Disparo2_Y;
-  private int Pos_Disparo3_X;
-  private int Pos_Disparo3_Y;
-  private boolean tiro;
+  private double ang_nave_elipse;
+  private int pos_disparo1_x;
+  private int pos_disparo1_y;
+  private int pos_disparo2_x;
+  private int pos_disparo2_y;
+  private int pos_disparo3_x;
+  private int pos_disparo3_y;
+  private int vida_planeta;
+  private int vida_nave;
   int identificador_jogador; // 0 para jogador1 e 1 para jogador2.
 
   Servindo(Socket cliente, int identificador_jogador){
@@ -52,38 +53,35 @@ class Servindo extends Thread {
       System.out.println("identificador_jogador:  " + identificador_jogador);
       try{
         // recebe o dado enviado pelo cliente e o armazena para envio ao outro cliente.
-        ang_Nave_elipse = (recebe_dados_cliente[identificador_jogador]).readDouble();
-        Pos_Disparo1_X = recebe_dados_cliente[identificador_jogador].readInt();
-        Pos_Disparo1_Y = recebe_dados_cliente[identificador_jogador].readInt();
-        Pos_Disparo2_X = recebe_dados_cliente[identificador_jogador].readInt();
-        Pos_Disparo2_Y = recebe_dados_cliente[identificador_jogador].readInt();
-        Pos_Disparo3_X = recebe_dados_cliente[identificador_jogador].readInt();
-        Pos_Disparo3_Y = recebe_dados_cliente[identificador_jogador].readInt();
-        tiro = recebe_dados_cliente[identificador_jogador].readBoolean();
+        ang_nave_elipse = (recebe_dados_cliente[identificador_jogador]).readDouble();
+        pos_disparo1_x = recebe_dados_cliente[identificador_jogador].readInt();
+        pos_disparo1_y = recebe_dados_cliente[identificador_jogador].readInt();
+        pos_disparo2_x = recebe_dados_cliente[identificador_jogador].readInt();
+        pos_disparo2_y = recebe_dados_cliente[identificador_jogador].readInt();
+        pos_disparo3_x = recebe_dados_cliente[identificador_jogador].readInt();
+        pos_disparo3_y = recebe_dados_cliente[identificador_jogador].readInt();
       }catch(IOException e){
         System.out.println(e);
       }
       try{
         // faz o envio dos dados aos respectivos clientes.
         if(identificador_jogador == 1){
-          distribui_dados[0].writeDouble(ang_Nave_elipse);
-          distribui_dados[0].writeInt(Pos_Disparo1_X);
-          distribui_dados[0].writeInt(Pos_Disparo1_Y);
-          distribui_dados[0].writeInt(Pos_Disparo2_X);
-          distribui_dados[0].writeInt(Pos_Disparo2_Y);
-          distribui_dados[0].writeInt(Pos_Disparo3_X);
-          distribui_dados[0].writeInt(Pos_Disparo3_Y);
-          distribui_dados[0].writeBoolean(tiro);
+          distribui_dados[0].writeDouble(ang_nave_elipse);
+          distribui_dados[0].writeInt(pos_disparo1_x);
+          distribui_dados[0].writeInt(pos_disparo1_y);
+          distribui_dados[0].writeInt(pos_disparo2_x);
+          distribui_dados[0].writeInt(pos_disparo2_y);
+          distribui_dados[0].writeInt(pos_disparo3_x);
+          distribui_dados[0].writeInt(pos_disparo3_y);
         }
         else{
-          distribui_dados[1].writeDouble(ang_Nave_elipse);
-          distribui_dados[1].writeInt(Pos_Disparo1_X);
-          distribui_dados[1].writeInt(Pos_Disparo1_Y);
-          distribui_dados[1].writeInt(Pos_Disparo2_X);
-          distribui_dados[1].writeInt(Pos_Disparo2_Y);
-          distribui_dados[1].writeInt(Pos_Disparo3_X);
-          distribui_dados[1].writeInt(Pos_Disparo3_Y);
-          distribui_dados[1].writeBoolean(tiro);
+          distribui_dados[1].writeDouble(ang_nave_elipse);
+          distribui_dados[1].writeInt(pos_disparo1_x);
+          distribui_dados[1].writeInt(pos_disparo1_y);
+          distribui_dados[1].writeInt(pos_disparo2_x);
+          distribui_dados[1].writeInt(pos_disparo2_y);
+          distribui_dados[1].writeInt(pos_disparo3_x);
+          distribui_dados[1].writeInt(pos_disparo3_y);
         }
       }catch(IOException e){
         System.out.println(e);
@@ -93,12 +91,6 @@ class Servindo extends Thread {
       }catch(InterruptedException e){
         System.out.println(e);
       }
-      // DEBUG
-      /*System.out.println("Pos_Nave_X_:  " + Pos_Nave_X + " I: " + identificador_jogador);
-      System.out.println("Pos_Nave_Y_:  " + Pos_Nave_Y + " I: " + identificador_jogador);
-      System.out.println("Pos_Disparo_Y_:  " + Pos_Disparo_Y + " I: " + identificador_jogador);
-      System.out.println("Pos_Disparo_X_:  " + Pos_Disparo_X + " I: " + identificador_jogador);
-      System.out.println(" ");*/
     }
   }
 }
