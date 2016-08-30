@@ -95,9 +95,9 @@ class Character implements ActionListener {
 	  
 	}
     
-    if (sentido) t-=0.001;
+    if (sentido) t-=0.001/(cont+1);
     
-    else if (!sentido) t+=0.001;
+    else if (!sentido) t+=0.001/(cont+1);
     
     troca++;
     
@@ -133,7 +133,7 @@ class Character implements ActionListener {
 
 class Tiro implements ActionListener {
   
-  Timer timer = new Timer(30, this);
+  Timer timer = new Timer(40, this);
   int x,y;
   int cx, cy;
   int vel=5;
@@ -259,6 +259,14 @@ class Draw extends JPanel {
   });
   boolean end=false;
   Cliente cliente=null;
+  Timer check = new Timer (30,new ActionListener() {
+    
+    @Override
+    public void actionPerformed(ActionEvent e) {
+	  
+	}
+    
+  });
   
   Draw () {
 	
@@ -400,6 +408,30 @@ class Draw extends JPanel {
 	
 	if (tiro1[2]!=null) g2.drawImage(tiro1[2].img,(int)tiro1[2].x,tiro1[2].y,null);
 	
+	if (tiro2[0]==null) {
+		
+		tiro2[0] = new Tiro(cliente.get_Pos_Disparo1_X_Adv(),cliente.get_Pos_Disparo1_Y_Adv(),laser2,this); 
+		tiro2[0].vel=-5;
+		tiro2[0].hitbox = new Rectangle2D.Float(tiro2[0].x+10,tiro2[0].y,tiro2[0].img.getWidth(null),tiro2[0].img.getHeight(null));
+		
+	  }
+	  
+	else if (tiro2[1]==null) {
+		  
+	  tiro2[1] = new Tiro(cliente.get_Pos_Disparo2_X_Adv(),cliente.get_Pos_Disparo2_Y_Adv(),laser2,this); 
+	  tiro2[1].vel=-5;
+	  tiro2[1].hitbox = new Rectangle2D.Float(tiro2[1].x+10,tiro2[1].y,tiro2[1].img.getWidth(null),tiro2[1].img.getHeight(null));
+		
+	}
+	  
+	else if (tiro2[2]==null) {
+		  
+	  tiro2[2] = new Tiro(cliente.get_Pos_Disparo3_X_Adv(),cliente.get_Pos_Disparo3_Y_Adv(),laser2,this); 
+	  tiro2[2].vel=-5;
+	  tiro2[2].hitbox = new Rectangle2D.Float(tiro2[2].x+10,tiro2[2].y,tiro2[2].img.getWidth(null),tiro2[2].img.getHeight(null));
+		
+	}
+	
 	if (tiro2[0]!=null) g2.drawImage(tiro2[0].img,(int)tiro2[0].x,tiro2[0].y,null);
 	
 	if (tiro2[1]!=null) g2.drawImage(tiro2[1].img,(int)tiro2[1].x,tiro2[1].y,null);
@@ -483,15 +515,8 @@ class Teclado extends KeyAdapter {
     
     if ((cod==KeyEvent.VK_LEFT||cod==KeyEvent.VK_A)&&desce&&!draw.inicio&&!draw.end) { 
 	  
-	  if (draw.player1.cont==1) { 
-		  
-		draw.player1.rw-=draw.player1.add; 
-	    draw.player1.rh-=draw.player1.add; 
-	    draw.player1.cont--; 
-	    
-	  }
 	  
-	  else if (draw.player1.cont==0) {
+	 if (draw.player1.cont==0) {
 		
 		draw.player1.rw+=draw.player1.add; 
 		draw.player1.rh+=draw.player1.add; 
@@ -505,17 +530,9 @@ class Teclado extends KeyAdapter {
 	}
     
     else if ((cod==KeyEvent.VK_RIGHT||cod==KeyEvent.VK_D)&&sobe&&!draw.inicio&&!draw.end) { 
-	
-	  if (draw.player1.cont==0) { 
 		  
-		draw.player1.rw+=draw.player1.add;
-		draw.player1.rh+=draw.player1.add;
-		draw.player1.cont++; 
+	  if (draw.player1.cont==1) { 
 		
-	  }
-	  
-	  else if (draw.player1.cont==1) { 
-		  
 		draw.player1.rw-=draw.player1.add;
 		draw.player1.rh-=draw.player1.add;
 		draw.player1.cont--; 
@@ -542,8 +559,8 @@ class Teclado extends KeyAdapter {
 		  
 		draw.tiro1[1] = new Tiro(draw.player1.x+draw.player1.img.getWidth(null)+10,draw.player1.y+draw.player1.img.getHeight(null)/2-8,draw.laser1,draw);
 		draw.tiro1[1].hitbox = new Rectangle2D.Float(draw.tiro1[1].x,draw.tiro1[1].y,draw.tiro1[1].img.getWidth(null)-10,draw.tiro1[1].img.getHeight(null));
-		draw.cliente.put_Pos_Disparo1_X(draw.tiro1[1].x);
-		draw.cliente.put_Pos_Disparo1_Y(draw.tiro1[1].y);
+		draw.cliente.put_Pos_Disparo2_X(draw.tiro1[1].x);
+		draw.cliente.put_Pos_Disparo2_Y(draw.tiro1[1].y);
 		
 	  }
 	  
@@ -551,32 +568,8 @@ class Teclado extends KeyAdapter {
 		  
 		draw.tiro1[2] = new Tiro(draw.player1.x+draw.player1.img.getWidth(null)+10,draw.player1.y+draw.player1.img.getHeight(null)/2-8,draw.laser1,draw);
 		draw.tiro1[2].hitbox = new Rectangle2D.Float(draw.tiro1[2].x,draw.tiro1[2].y,draw.tiro1[2].img.getWidth(null)-10,draw.tiro1[2].img.getHeight(null));
-		draw.cliente.put_Pos_Disparo1_X(draw.tiro1[2].x);
-		draw.cliente.put_Pos_Disparo1_Y(draw.tiro1[2].y);
-		
-	  }
-	  
-	  if (draw.tiro2[0]==null) {
-		
-		draw.tiro2[0] = new Tiro(draw.cliente.get_Pos_Disparo1_X_Adv(),draw.cliente.get_Pos_Disparo1_Y_Adv(),draw.laser2,draw); 
-		draw.tiro2[0].vel=-5;
-		draw.tiro2[0].hitbox = new Rectangle2D.Float(draw.tiro2[0].x+10,draw.tiro2[0].y,draw.tiro2[0].img.getWidth(null),draw.tiro2[0].img.getHeight(null));
-		
-	  }
-	  
-	  else if (draw.tiro2[1]==null) {
-		  
-		draw.tiro2[1] = new Tiro(draw.cliente.get_Pos_Disparo1_X_Adv(),draw.cliente.get_Pos_Disparo1_Y_Adv(),draw.laser2,draw); 
-		draw.tiro2[0].vel=-5;
-		draw.tiro2[1].hitbox = new Rectangle2D.Float(draw.tiro2[1].x+10,draw.tiro2[1].y,draw.tiro2[1].img.getWidth(null),draw.tiro2[1].img.getHeight(null));
-		
-	  }
-	  
-	  else if (draw.tiro2[2]==null) {
-		  
-		draw.tiro2[2] = new Tiro(draw.cliente.get_Pos_Disparo1_X_Adv(),draw.cliente.get_Pos_Disparo1_Y_Adv(),draw.laser2,draw);
-		draw.tiro2[0].vel=-5;
-		draw.tiro2[2].hitbox = new Rectangle2D.Float(draw.tiro2[2].x+10,draw.tiro2[2].y,draw.tiro2[2].img.getWidth(null),draw.tiro2[2].img.getHeight(null));
+		draw.cliente.put_Pos_Disparo3_X(draw.tiro1[2].x);
+		draw.cliente.put_Pos_Disparo3_Y(draw.tiro1[2].y);
 		
 	  }
 	  	
