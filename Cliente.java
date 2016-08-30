@@ -20,6 +20,7 @@ public class Cliente extends Thread{
   private int pos_disparo3_y_adv;
   private int vida_planeta_adv;
   private int vida_nave_adv;
+  private boolean estado_jogo_adv = true;
 
   // posicao da nave atual.
   private double ang_nave_elipse;
@@ -31,6 +32,9 @@ public class Cliente extends Thread{
   private int pos_disparo3_y;
   private int vida_planeta;
   private int vida_nave;
+  private boolean estado_jogador = false;
+  private boolean pronto_para_inicio = false;
+  private boolean estado_jogo = true;
 
   // variaveis de conexao cliente/servidor
   Socket cliente = null;
@@ -38,6 +42,14 @@ public class Cliente extends Thread{
   static DataOutputStream saida = null;
 
   /////////////// Funcoes de aquisição de dados do adversario ///////////////////
+  public boolean get_estado_jogo_adv(){
+    return estado_jogo_adv;
+  }
+
+  public boolean get_pronto_para_inicio(){
+		return pronto_para_inicio;
+	}
+
   public int get_vida_nave_adv(){
 		return vida_nave_adv;
 	}
@@ -79,6 +91,14 @@ public class Cliente extends Thread{
   }
 
   /////////// Funcoes de envio de dados da nave para o servidor ///////////
+  public void put_estado_jogo(boolean estado){
+    estado_jogo = estado;
+  }
+
+  public void put_estado_jogador(boolean estado){
+		estado_jogador = estado;
+	}
+
   public void put_vida_nave_adv(int vida){
     vida_nave = vida;
   }
@@ -123,8 +143,14 @@ public class Cliente extends Thread{
       saida = new DataOutputStream(cliente.getOutputStream()); // Estabelece a saida de dados para o servidor.
       identificador_jogador = recebe_servidor.readInt(); // Recebe o numero de jogador respectivo a cada cliente (vem do servidor).
       System.out.println("identificador_jogador:  " + identificador_jogador);
+      do{ // segura o cliente enquanto ele nao esta pronto.
+        saida.writeBoolean(estado_jogador); // envia o estado do jogador ao servidor.
+      } while (!estado_jogador); // segura o cliente enquanto ele nao esta pronto.
+      do { // segura o cliente que ja esta pronto enquanto o adversario nao esta pronto.
+        pronto_para_inicio = recebe_servidor.readBoolean(); // receeb do servidor se o adversario esta ou nao pronto.
+      } while (!pronto_para_inicio); // segura o cliente que ja esta pronto enquanto o adversario nao esta pronto.
     }catch(IOException e){};
-    while(true){ // talvez podemos fazer parar assim que o jogo acaba, mas fazermos isso depois.
+    do{
       try{
         // envia os dados ao servidor.
         saida.writeDouble(ang_nave_elipse);
@@ -136,6 +162,7 @@ public class Cliente extends Thread{
         saida.writeInt(pos_disparo3_y);
         saida.writeInt(vida_nave);
         saida.writeInt(vida_planeta);
+        saida.writeBoolean(estado_jogo);
       }catch(IOException e){
         System.out.println(e);
       }
@@ -150,6 +177,7 @@ public class Cliente extends Thread{
         pos_disparo3_y_adv = recebe_servidor.readInt();
         vida_planeta_adv = recebe_servidor.readInt();
         vida_nave_adv = recebe_servidor.readInt();
+        estado_jogo_adv = recebe_servidor.readBoolean();
       }catch(IOException e){
         System.out.println(e);
       }
@@ -158,6 +186,14 @@ public class Cliente extends Thread{
       }catch(InterruptedException e){
         System.out.println(e);
       }
+    }while(estado_jogo && estado_jogo_adv);
+    // finaliza o cliente
+    try{
+      saida.close();
+      recebe_servidor.close();
+      cliente.close();
+    }catch(IOException e){
+      System.out.println(e);
     }
   }
  }

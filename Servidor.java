@@ -30,6 +30,9 @@ class Servindo extends Thread {
   private int pos_disparo3_y;
   private int vida_planeta;
   private int vida_nave;
+  private boolean pronto_para_inicio = false; // indica se os dois jogadores estão pronto para o iniciar o jogo.
+  static int numero_jogadores_prontos = 0;
+  static boolean estado_jogo = true;
   int identificador_jogador; // 0 para jogador1 e 1 para jogador2.
 
   Servindo(Socket cliente, int identificador_jogador){
@@ -37,19 +40,26 @@ class Servindo extends Thread {
     this.identificador_jogador = identificador_jogador;
   }
   public void run(){
-    //System.out.println("identificador_jogador:  " + identificador_jogador);
     try{
       recebe_dados_cliente[identificador_jogador] = new DataInputStream(cliente.getInputStream()); // stream de dados que vem do cliente para o servidor.
       distribui_dados[identificador_jogador] = new DataOutputStream(cliente.getOutputStream());  // armazenda a stream de dados que vem do servidor para o cliente.
     }catch(IOException e){
       System.out.println(e);
     }
-    try{ // no campo jogador = 0 envia 0, no campo jogador = 1 envia 1;
+    try{
       distribui_dados[identificador_jogador].writeInt(identificador_jogador); // envia a identificacao ao jogador
+      do{
+        pronto_para_inicio = recebe_dados_cliente[identificador_jogador].readBoolean(); // recebe do cliente se o jogador esta pronto para o inicio do jogo.
+      }while(!pronto_para_inicio); // segura o servidor enquanto o cliente em questao nao esta pronto.
+      numero_jogadores_prontos++;
+      do{
+        distribui_dados[0].writeBoolean(pronto_para_inicio); // envia o estado do jogador para seu adversario.
+        distribui_dados[1].writeBoolean(pronto_para_inicio); // envia o estado do jogador para seu adversario.
+      }while(numero_jogadores_prontos < 2); // segura o servidor enquanto ambos os clientes nao estao prontos.
     }catch(IOException e){
       System.out.println(e);
     }
-    while(true){ // podemos fazer o cliente enviar que o jogo foi fechado e fechar o server. mas fazemos isso por ultimo.
+    do{ // podemos fazer o cliente enviar que o jogo foi fechado e fechar o server. mas fazemos isso por ultimo.
       System.out.println("identificador_jogador:  " + identificador_jogador);
       try{
         // recebe o dado enviado pelo cliente e o armazena para envio ao outro cliente.
@@ -60,6 +70,7 @@ class Servindo extends Thread {
         pos_disparo2_y = recebe_dados_cliente[identificador_jogador].readInt();
         pos_disparo3_x = recebe_dados_cliente[identificador_jogador].readInt();
         pos_disparo3_y = recebe_dados_cliente[identificador_jogador].readInt();
+        estado_jogo = recebe_dados_cliente[identificador_jogador].readBoolean();
       }catch(IOException e){
         System.out.println(e);
       }
@@ -73,6 +84,7 @@ class Servindo extends Thread {
           distribui_dados[0].writeInt(pos_disparo2_y);
           distribui_dados[0].writeInt(pos_disparo3_x);
           distribui_dados[0].writeInt(pos_disparo3_y);
+          distribui_dados[0].writeBoolean(estado_jogo);
         }
         else{
           distribui_dados[1].writeDouble(ang_nave_elipse);
@@ -82,6 +94,7 @@ class Servindo extends Thread {
           distribui_dados[1].writeInt(pos_disparo2_y);
           distribui_dados[1].writeInt(pos_disparo3_x);
           distribui_dados[1].writeInt(pos_disparo3_y);
+          distribui_dados[1].writeBoolean(estado_jogo);
         }
       }catch(IOException e){
         System.out.println(e);
@@ -91,6 +104,9 @@ class Servindo extends Thread {
       }catch(InterruptedException e){
         System.out.println(e);
       }
-    }
+    }while (estado_jogo);
+    recebe_dados_cliente[identificador_jogador].close();
+    distribui_dados[identificador_jogador].close();
+    cliente.close();
   }
 }
