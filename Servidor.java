@@ -53,10 +53,11 @@ class Servindo extends Thread {
       }while(!pronto_para_inicio); // segura o servidor enquanto o cliente em questao nao esta pronto.
       numero_jogadores_prontos++;
       do{
-        if(identificador_jogador == 1)
-          distribui_dados[0].writeBoolean(pronto_para_inicio); // envia o estado do jogador para seu adversario.
-        else
+        if((identificador_jogador == 0) && (numero_jogadores_prontos > 2)) // não faz envio ao jogador que nao estiver pronto. Evitando, possivelmente, o broken pipe.
           distribui_dados[1].writeBoolean(pronto_para_inicio); // envia o estado do jogador para seu adversario.
+        else
+          if((identificador_jogador == 1) && (numero_jogadores_prontos > 2))
+            distribui_dados[0].writeBoolean(pronto_para_inicio); // envia o estado do jogador para seu adversario.
       }while(numero_jogadores_prontos < 2); // segura o servidor enquanto ambos os clientes nao estao prontos.
     }catch(IOException e){
       System.out.println(e);
