@@ -115,7 +115,7 @@ public class Cliente extends Thread{
     vida_nave = vida;
   }
 
-  public void out_vida_planeta(int vida){
+  public void put_vida_planeta(int vida){
     vida_planeta = vida;
   }
 
