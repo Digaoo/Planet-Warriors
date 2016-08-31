@@ -260,12 +260,14 @@ class Draw extends JPanel {
   boolean end=false;
   Cliente cliente=null;
   Timer check = new Timer (30,new ActionListener() {
-    
-    @Override
-    public void actionPerformed(ActionEvent e) {
-	  
+	
+	@Override
+	public void actionPerformed(ActionEvent e) {
+	  	  
+	  repaint();
+	  	
 	}
-    
+	 
   });
   
   Draw () {
@@ -308,6 +310,7 @@ class Draw extends JPanel {
 	player2.hitbox = new Rectangle2D.Float(player2.x,player2.y,player2.img.getWidth(null),player2.img.getHeight(null));
 	
 	cliente = new Cliente();
+	check.start();
 	cliente.start();
 	  
   }
@@ -354,8 +357,16 @@ class Draw extends JPanel {
 	
 	  g2.setFont(new Font(Font.SANS_SERIF, Font.HANGING_BASELINE, 50));
 	  g2.drawString("Aperte Enter Para Continuar",130,340);
+	  cliente.put_estado_jogador(true);
 	
     }
+    
+    else if (!cliente.get_pronto_para_inicio()) {
+	  
+	  g2.setFont(new Font(Font.SANS_SERIF, Font.HANGING_BASELINE, 50));
+	  g2.drawString("Aguardando Adversário",190,340);
+	  	
+	}
 	
 	else {
 	  
@@ -390,9 +401,9 @@ class Draw extends JPanel {
   public void personagem (Graphics2D g2) {
 	
 	g2.drawImage(player1.img,player1.x,player1.y,null);
-	cliente.put_ang_Nave_elipse(player1.t);
+	cliente.put_ang_nave_elipse(player1.t);
 	
-	player2.t = cliente.get_ang_Nave_elipse_Adv() + Math.PI;
+	player2.t = cliente.get_ang_nave_elipse_adv() + Math.PI;
 	player2.coord();
 	g2.drawImage(player2.img,player2.x,player2.y,null);
 	  
@@ -410,7 +421,7 @@ class Draw extends JPanel {
 	
 	if (tiro2[0]==null) {
 		
-		tiro2[0] = new Tiro(cliente.get_Pos_Disparo1_X_Adv(),cliente.get_Pos_Disparo1_Y_Adv(),laser2,this); 
+		tiro2[0] = new Tiro(cliente.get_pos_disparo1_x_adv(),cliente.get_pos_disparo1_y_adv(),laser2,this); 
 		tiro2[0].vel=-5;
 		tiro2[0].hitbox = new Rectangle2D.Float(tiro2[0].x+10,tiro2[0].y,tiro2[0].img.getWidth(null),tiro2[0].img.getHeight(null));
 		
@@ -418,7 +429,7 @@ class Draw extends JPanel {
 	  
 	else if (tiro2[1]==null) {
 		  
-	  tiro2[1] = new Tiro(cliente.get_Pos_Disparo2_X_Adv(),cliente.get_Pos_Disparo2_Y_Adv(),laser2,this); 
+	  tiro2[1] = new Tiro(cliente.get_pos_disparo2_x_adv(),cliente.get_pos_disparo2_y_adv(),laser2,this); 
 	  tiro2[1].vel=-5;
 	  tiro2[1].hitbox = new Rectangle2D.Float(tiro2[1].x+10,tiro2[1].y,tiro2[1].img.getWidth(null),tiro2[1].img.getHeight(null));
 		
@@ -426,7 +437,7 @@ class Draw extends JPanel {
 	  
 	else if (tiro2[2]==null) {
 		  
-	  tiro2[2] = new Tiro(cliente.get_Pos_Disparo3_X_Adv(),cliente.get_Pos_Disparo3_Y_Adv(),laser2,this); 
+	  tiro2[2] = new Tiro(cliente.get_pos_disparo3_x_adv(),cliente.get_pos_disparo3_y_adv(),laser2,this); 
 	  tiro2[2].vel=-5;
 	  tiro2[2].hitbox = new Rectangle2D.Float(tiro2[2].x+10,tiro2[2].y,tiro2[2].img.getWidth(null),tiro2[2].img.getHeight(null));
 		
@@ -550,8 +561,8 @@ class Teclado extends KeyAdapter {
 		
 		draw.tiro1[0] = new Tiro(draw.player1.x+draw.player1.img.getWidth(null)+10,draw.player1.y+draw.player1.img.getHeight(null)/2-8,draw.laser1,draw); 
 		draw.tiro1[0].hitbox = new Rectangle2D.Float(draw.tiro1[0].x,draw.tiro1[0].y,draw.tiro1[0].img.getWidth(null)-10,draw.tiro1[0].img.getHeight(null));
-		draw.cliente.put_Pos_Disparo1_X(draw.tiro1[0].x);
-		draw.cliente.put_Pos_Disparo1_Y(draw.tiro1[0].y);
+		draw.cliente.put_pos_disparo1_x(draw.tiro1[0].x);
+		draw.cliente.put_pos_disparo1_y(draw.tiro1[0].y);
 		
 	  }
 	  
@@ -559,8 +570,8 @@ class Teclado extends KeyAdapter {
 		  
 		draw.tiro1[1] = new Tiro(draw.player1.x+draw.player1.img.getWidth(null)+10,draw.player1.y+draw.player1.img.getHeight(null)/2-8,draw.laser1,draw);
 		draw.tiro1[1].hitbox = new Rectangle2D.Float(draw.tiro1[1].x,draw.tiro1[1].y,draw.tiro1[1].img.getWidth(null)-10,draw.tiro1[1].img.getHeight(null));
-		draw.cliente.put_Pos_Disparo2_X(draw.tiro1[1].x);
-		draw.cliente.put_Pos_Disparo2_Y(draw.tiro1[1].y);
+		draw.cliente.put_pos_disparo2_x(draw.tiro1[1].x);
+		draw.cliente.put_pos_disparo2_y(draw.tiro1[1].y);
 		
 	  }
 	  
@@ -568,8 +579,8 @@ class Teclado extends KeyAdapter {
 		  
 		draw.tiro1[2] = new Tiro(draw.player1.x+draw.player1.img.getWidth(null)+10,draw.player1.y+draw.player1.img.getHeight(null)/2-8,draw.laser1,draw);
 		draw.tiro1[2].hitbox = new Rectangle2D.Float(draw.tiro1[2].x,draw.tiro1[2].y,draw.tiro1[2].img.getWidth(null)-10,draw.tiro1[2].img.getHeight(null));
-		draw.cliente.put_Pos_Disparo3_X(draw.tiro1[2].x);
-		draw.cliente.put_Pos_Disparo3_Y(draw.tiro1[2].y);
+		draw.cliente.put_pos_disparo3_x(draw.tiro1[2].x);
+		draw.cliente.put_pos_disparo3_y(draw.tiro1[2].y);
 		
 	  }
 	  	

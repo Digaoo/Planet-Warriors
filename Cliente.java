@@ -149,6 +149,7 @@ public class Cliente extends Thread{
       do { // segura o cliente que ja esta pronto enquanto o adversario nao esta pronto.
         pronto_para_inicio = recebe_servidor.readBoolean(); // receeb do servidor se o adversario esta ou nao pronto.
       } while (!pronto_para_inicio); // segura o cliente que ja esta pronto enquanto o adversario nao esta pronto.
+      pronto_para_inicio=true;
     }catch(IOException e){};
     do{
       try{
