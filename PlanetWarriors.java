@@ -263,7 +263,8 @@ class Draw extends JPanel {
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
-	  	  
+	  
+	  System.out.println("oi");
 	  repaint();
 	  	
 	}
@@ -357,7 +358,6 @@ class Draw extends JPanel {
 	
 	  g2.setFont(new Font(Font.SANS_SERIF, Font.HANGING_BASELINE, 50));
 	  g2.drawString("Aperte Enter Para Continuar",130,340);
-	  cliente.put_estado_jogador(true);
 	
     }
     
@@ -591,6 +591,7 @@ class Teclado extends KeyAdapter {
 	  if (draw.inicio) {
 	  
 	    draw.go=true;
+	    draw.cliente.put_estado_jogador(true);
 	    draw.repaint();
 	    
 	  }
