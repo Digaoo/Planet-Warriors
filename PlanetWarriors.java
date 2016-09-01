@@ -29,6 +29,7 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.awt.Font;
 import java.awt.Shape;
+import java.lang.Thread;
 
 class Base {
 	
@@ -136,7 +137,7 @@ class Tiro implements ActionListener {
   Timer timer = new Timer(40, this);
   int x,y;
   int cx, cy;
-  int vel=5;
+  int vel=10;
   Image img;
   Draw draw;
   Rectangle2D.Float hitbox;
@@ -164,7 +165,7 @@ class Tiro implements ActionListener {
     if ((draw.base.get(2)).hitbox.intersects(hitbox)) {
 	  
 	  draw.planeta2_life-=5;
-	  draw.repaint(0,0,1000,10);
+	  draw.repaint();
 	  
 	  if (draw.planeta2_life==0) draw.end=true;
 	  
@@ -175,7 +176,7 @@ class Tiro implements ActionListener {
 	else if ((draw.base.get(1)).hitbox.contains(hitbox)) {
 	  
 	  draw.planeta1_life-=5;
-	  draw.repaint(0,0,1000,10);
+	  draw.repaint();
 	  
 	  if (draw.planeta1_life==0) draw.end=true;
 	  
@@ -183,15 +184,27 @@ class Tiro implements ActionListener {
 	   
 	}
 	
-	else if (draw.player2.hitbox.intersects(hitbox)) {
+	else if (draw.player1.hitbox.intersects(hitbox)) {
 	  
-	  draw.nave2_life-=5;
+	  draw.nave1_life-=5;
+	  
+	  if (draw.nave1_life==0) draw.end=true;
 	  
 	  parar=true;
 	  	
 	}
 	
-	else if (x>1000) {
+	else if (draw.player2.hitbox.intersects(hitbox)) {
+	  
+	  draw.nave2_life-=5;
+	  
+	  if (draw.nave2_life==0) draw.end=true;
+	  
+	  parar=true;
+	  	
+	}
+	
+	else if (x>1000||x<0) {
 	  
 	  parar=true;
 	  	
@@ -206,6 +219,12 @@ class Tiro implements ActionListener {
 	  else if(draw.tiro1[1]!=null&&draw.tiro1[1].equals(this)) draw.tiro1[1]=null;
 	  
 	  else if(draw.tiro1[2]!=null&&draw.tiro1[2].equals(this)) draw.tiro1[2]=null;
+	  
+	  else if(draw.tiro2[0]!=null&&draw.tiro2[0].equals(this)) draw.tiro2[0]=null;
+	  
+	  else if(draw.tiro2[1]!=null&&draw.tiro2[1].equals(this)) draw.tiro2[1]=null;
+	  
+	  else if(draw.tiro2[2]!=null&&draw.tiro2[2].equals(this)) draw.tiro2[2]=null;
 	  	
 	}
     
@@ -221,6 +240,8 @@ class Draw extends JPanel {
   Image planeta_dois = null;
   Image nave_um = null;
   Image nave_dois = null;
+  Image nave_um_alt = null;
+  Image nave_dois_alt = null;
   Image laser1=null;
   Image laser2=null;
   Elipse[] orbitas_um = new Elipse[2];
@@ -230,6 +251,7 @@ class Draw extends JPanel {
   Character player2;
   Tiro[] tiro1 = new Tiro[3];
   Tiro[] tiro2 = new Tiro[3];
+  int[] last_shot = new int[3];
   int planeta1_life=200;
   int nave1_life=20;
   int planeta2_life=200;
@@ -264,8 +286,12 @@ class Draw extends JPanel {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 	  
-	  System.out.println("oi");
 	  repaint();
+	  if (cliente.get_estado_jogo_adv()==false) end=true;
+	  cliente.put_vida_nave(nave1_life);
+	  cliente.put_vida_planeta(planeta1_life);
+	  planeta2_life=cliente.get_vida_planeta_adv();
+	  nave2_life=cliente.get_vida_nave_adv();
 	  	
 	}
 	 
@@ -282,6 +308,8 @@ class Draw extends JPanel {
       planeta_dois = ImageIO.read(new File("Planeta.png"));
       nave_um = ImageIO.read(new File("Nave_1.png"));
       nave_dois = ImageIO.read(new File("Nave_2.png"));
+      nave_um_alt = ImageIO.read(new File("Nave_3.png"));
+      nave_dois_alt = ImageIO.read(new File("Nave_4.png"));
       laser1 = ImageIO.read(new File("Laser1.png"));
       laser2 = ImageIO.read(new File("Laser2.png"));
         
@@ -292,27 +320,65 @@ class Draw extends JPanel {
      
     }
     
-    base.add(new Base (0,0,fundo,this));
-    Base aux = new Base (200,325,planeta_um,this);
-    aux.hitbox = new Ellipse2D.Float(aux.cx,aux.cy,aux.img.getWidth(null),aux.img.getHeight(null));
-    orbitas_um[0] = new Elipse(aux.x,aux.y,110,150);
-    orbitas_um[1] = new Elipse(aux.x,aux.y,160,200);
-    base.add(aux);
-    Base aux2 = new Base (780,325,planeta_dois,this);
-    aux2.hitbox = new Ellipse2D.Float(aux2.cx+8,aux2.cy+8,aux2.img.getWidth(null)-16,aux2.img.getHeight(null)-16);
-    orbitas_dois[0] = new Elipse(aux2.x,aux2.y,110,150);
-    orbitas_dois[1] = new Elipse(aux2.x,aux2.y,160,200);
-    base.add(aux2);
+    for (int i=0;i<3;i++) {
+	  
+	  last_shot[i]=-200;
+	  	
+	}
     
-    player1 = new Character(aux.x+(int)(orbitas_um[0].elipse.width/2)-nave_um.getWidth(null)/2+10,aux.y-nave_um.getHeight(null)/2,nave_um,this,1);
-	player1.hitbox = new Rectangle2D.Float(player1.x,player1.y,player1.img.getWidth(null),player1.img.getHeight(null));
-	
-	player2 = new Character(aux2.x-(int)(orbitas_dois[0].elipse.width/2)-nave_dois.getWidth(null)/2-10,aux2.y-nave_dois.getHeight(null)/2,nave_dois,this,2);
-	player2.hitbox = new Rectangle2D.Float(player2.x,player2.y,player2.img.getWidth(null),player2.img.getHeight(null));
-	
-	cliente = new Cliente();
-	check.start();
+    cliente = new Cliente();
 	cliente.start();
+	check.start();
+	
+	try {
+	
+	 Thread.sleep(50);
+	 
+	} catch (Exception e) {}
+	
+	base.add(new Base (0,0,fundo,this));
+	
+	if (cliente.get_identificador_jogador()==0) {
+    
+      Base aux = new Base (200,325,planeta_um,this);
+      aux.hitbox = new Ellipse2D.Float(aux.cx,aux.cy,aux.img.getWidth(null),aux.img.getHeight(null));
+      orbitas_um[0] = new Elipse(aux.x,aux.y,110,150);
+      orbitas_um[1] = new Elipse(aux.x,aux.y,160,200);
+      base.add(aux);
+      Base aux2 = new Base (780,325,planeta_dois,this);
+      aux2.hitbox = new Ellipse2D.Float(aux2.cx+8,aux2.cy+8,aux2.img.getWidth(null)-16,aux2.img.getHeight(null)-16);
+      orbitas_dois[0] = new Elipse(aux2.x,aux2.y,110,150);
+      orbitas_dois[1] = new Elipse(aux2.x,aux2.y,160,200);
+      base.add(aux2);
+    
+      player1 = new Character(aux.x+(int)(orbitas_um[0].elipse.width/2)-nave_um.getWidth(null)/2+10,aux.y-nave_um.getHeight(null)/2,nave_um,this,1);
+	  player1.hitbox = new Rectangle2D.Float(player1.x,player1.y,player1.img.getWidth(null),player1.img.getHeight(null));
+	
+	  player2 = new Character(aux2.x+(int)(orbitas_dois[0].elipse.width/2)-nave_dois.getWidth(null)/2-5,aux2.y-nave_dois.getHeight(null)/2,nave_dois,this,2);
+	  player2.hitbox = new Rectangle2D.Float(player2.x,player2.y,player2.img.getWidth(null),player2.img.getHeight(null));
+	  
+	}
+	
+	else if (cliente.get_identificador_jogador()==1) {
+      
+      Base aux = new Base (180,325,planeta_dois,this);
+      aux.hitbox = new Ellipse2D.Float(aux.cx+8,aux.cy+8,aux.img.getWidth(null)-16,aux.img.getHeight(null)-16);
+      orbitas_um[0] = new Elipse(aux.x,aux.y,110,150);
+      orbitas_um[1] = new Elipse(aux.x,aux.y,160,200);
+      base.add(aux);
+      Base aux2 = new Base (800,325,planeta_um,this);
+      aux2.hitbox = new Ellipse2D.Float(aux2.cx,aux2.cy,aux2.img.getWidth(null),aux2.img.getHeight(null));
+      orbitas_dois[0] = new Elipse(aux2.x,aux2.y,110,150);
+      orbitas_dois[1] = new Elipse(aux2.x,aux2.y,160,200);
+      base.add(aux2);
+    
+      player1 = new Character(aux.x+(int)(orbitas_um[0].elipse.width/2)-nave_dois_alt.getWidth(null)/2+10,aux.y-nave_dois_alt.getHeight(null)/2,nave_dois_alt,this,1);
+	  player1.hitbox = new Rectangle2D.Float(player1.x,player1.y,player1.img.getWidth(null),player1.img.getHeight(null));
+	
+	  player2 = new Character(aux2.x+(int)(orbitas_dois[0].elipse.width/2)-nave_um_alt.getWidth(null)/2-5,aux2.y-nave_um_alt.getHeight(null)/2,nave_um_alt,this,2);
+	  player2.hitbox = new Rectangle2D.Float(player2.x,player2.y,player2.img.getWidth(null),player2.img.getHeight(null));
+	  
+	}
 	  
   }
   
@@ -402,9 +468,18 @@ class Draw extends JPanel {
 	
 	g2.drawImage(player1.img,player1.x,player1.y,null);
 	cliente.put_ang_nave_elipse(player1.t);
+	cliente.put_altura_raio_nave(player1.rh);
+	cliente.put_largura_raio_nave(player1.rw);
 	
-	player2.t = cliente.get_ang_nave_elipse_adv() + Math.PI;
-	player2.coord();
+	if (contador==0) {
+	
+	  player2.t = cliente.get_ang_nave_elipse_adv();
+	  player2.rh = cliente.get_altura_raio_nave_adv();
+	  player2.rw = cliente.get_largura_raio_nave_adv();
+	  player2.coord();
+	
+    }
+    
 	g2.drawImage(player2.img,player2.x,player2.y,null);
 	  
   }
@@ -419,26 +494,29 @@ class Draw extends JPanel {
 	
 	if (tiro1[2]!=null) g2.drawImage(tiro1[2].img,(int)tiro1[2].x,tiro1[2].y,null);
 	
-	if (tiro2[0]==null) {
+	if (tiro2[0]==null&&cliente.get_pos_disparo1_x_adv()>0&&cliente.get_pos_disparo1_x_adv()!=last_shot[0]) {
 		
-		tiro2[0] = new Tiro(cliente.get_pos_disparo1_x_adv(),cliente.get_pos_disparo1_y_adv(),laser2,this); 
-		tiro2[0].vel=-5;
+		tiro2[0] = new Tiro(1000-cliente.get_pos_disparo1_x_adv(),cliente.get_pos_disparo1_y_adv(),laser2,this); 
+		last_shot[0]=cliente.get_pos_disparo1_x_adv();
+		tiro2[0].vel=-10;
 		tiro2[0].hitbox = new Rectangle2D.Float(tiro2[0].x+10,tiro2[0].y,tiro2[0].img.getWidth(null),tiro2[0].img.getHeight(null));
 		
-	  }
+	}
 	  
-	else if (tiro2[1]==null) {
+	else if (tiro2[1]==null&&cliente.get_pos_disparo2_x_adv()>0&&cliente.get_pos_disparo2_x_adv()!=last_shot[1]) {
 		  
-	  tiro2[1] = new Tiro(cliente.get_pos_disparo2_x_adv(),cliente.get_pos_disparo2_y_adv(),laser2,this); 
-	  tiro2[1].vel=-5;
+	  tiro2[1] = new Tiro(1000-cliente.get_pos_disparo2_x_adv(),cliente.get_pos_disparo2_y_adv(),laser2,this);
+	  last_shot[1]=cliente.get_pos_disparo2_x_adv(); 
+	  tiro2[1].vel=-10;
 	  tiro2[1].hitbox = new Rectangle2D.Float(tiro2[1].x+10,tiro2[1].y,tiro2[1].img.getWidth(null),tiro2[1].img.getHeight(null));
 		
 	}
 	  
-	else if (tiro2[2]==null) {
+	else if (tiro2[2]==null&&cliente.get_pos_disparo3_x_adv()>0&&cliente.get_pos_disparo3_x_adv()!=last_shot[2]) {
 		  
-	  tiro2[2] = new Tiro(cliente.get_pos_disparo3_x_adv(),cliente.get_pos_disparo3_y_adv(),laser2,this); 
-	  tiro2[2].vel=-5;
+	  tiro2[2] = new Tiro(1000-cliente.get_pos_disparo3_x_adv(),cliente.get_pos_disparo3_y_adv(),laser2,this); 
+	  last_shot[2]=cliente.get_pos_disparo3_x_adv();
+	  tiro2[2].vel=-10;
 	  tiro2[2].hitbox = new Rectangle2D.Float(tiro2[2].x+10,tiro2[2].y,tiro2[2].img.getWidth(null),tiro2[2].img.getHeight(null));
 		
 	}
@@ -472,6 +550,7 @@ class Draw extends JPanel {
   public void fim (Graphics2D g2) {
 	
 	player1.timer.stop();
+	cliente.put_estado_jogo(false);
 	
 	g2.setColor (new Color(0,0,0,150));
 	g2.fillRect (0,0,1000,600);
@@ -482,7 +561,7 @@ class Draw extends JPanel {
 	
 	g2.drawString("Fim de Jogo !",325,310);
 	
-	if (planeta1_life==0) g2.drawString("Player 2 WINS !",130,370);
+	if (planeta1_life==0||nave1_life==0) g2.drawString("Player 2 WINS !",295,370);
 	
 	else g2.drawString("Player 1 WINS !",295,370);
 	
@@ -626,9 +705,12 @@ class PlanetWarriors {
 	
 	pw.jan.setSize(new Dimension(1000,600));
 	pw.jan.setResizable(false);
+	pw.jan.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	pw.jan.add(draw);
 	pw.jan.addKeyListener(new Teclado(draw,pw.jan));
 	pw.jan.setVisible(true);
+	
+	
 	  
   }
   	

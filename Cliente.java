@@ -20,8 +20,8 @@ public class Cliente extends Thread{
   private int pos_disparo2_y_adv;
   private int pos_disparo3_x_adv = -50;
   private int pos_disparo3_y_adv;
-  private int vida_planeta_adv;
-  private int vida_nave_adv;
+  private int vida_planeta_adv=200;
+  private int vida_nave_adv=20;
   private boolean estado_jogo_adv = true;
 
   // posicao da nave atual.
@@ -46,8 +46,8 @@ public class Cliente extends Thread{
   static DataOutputStream saida = null;
 
   /////////////// Funcoes de aquisição de dados do adversario ///////////////////
-  public boolean get_estado_jogo(){
-    return estado_jogo;
+  public boolean get_estado_jogo_adv(){
+    return estado_jogo_adv;
   }
 
   public boolean get_pronto_para_inicio(){
