@@ -2,22 +2,16 @@ import java.awt.Dimension;
 import java.io.IOException;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JLabel;
-import javax.swing.JButton;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.Canvas;
 import java.awt.Color;
-import java.awt.BorderLayout;
 import java.awt.geom.Ellipse2D;
 import java.awt.Toolkit;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.Timer;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
 import javax.swing.ImageIcon;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -30,6 +24,11 @@ import java.util.ArrayList;
 import java.awt.Font;
 import java.awt.Shape;
 import java.lang.Thread;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 
 class Base {
 	
@@ -296,6 +295,8 @@ class Draw extends JPanel {
 	}
 	 
   });
+  Song background = new Song("Epic_Music.wav",10,140000);
+  Song win = new Song("Kids_Cheering.wav",0,0);
   
   Draw () {
 	
@@ -439,6 +440,13 @@ class Draw extends JPanel {
 	  contagem.start();
 	  g2.setFont(new Font(Font.SANS_SERIF, Font.HANGING_BASELINE, 100));
 	  g2.drawString(""+contador,460,340);
+	  
+	  if (contador==1&&!background.isAlive()) {
+		
+		background.setDaemon(true);
+		background.start();
+		  
+	  }
 	  	
 	}
 	
@@ -552,6 +560,12 @@ class Draw extends JPanel {
 	player1.timer.stop();
 	cliente.put_estado_jogo(false);
 	
+	try {
+	
+	 Thread.sleep(50);
+	 
+	} catch (Exception e) {}
+	
 	g2.setColor (new Color(0,0,0,150));
 	g2.fillRect (0,0,1000,600);
 	g2.setColor (new Color(255,255,255));
@@ -565,11 +579,64 @@ class Draw extends JPanel {
 	
 	else g2.drawString("Player 1 WINS !",295,370);
 	
-	g2.setFont(new Font(Font.SANS_SERIF, Font.HANGING_BASELINE, 30));
-	g2.drawString("Aperte Enter Para Jogar Novamente ",220,560);
+	if (background.isAlive()) background.stop();
+	if (!win.isAlive())win.start();
 	  
   }
   
+}
+
+class Song extends Thread {
+	
+  
+  String som;
+  int vezes;
+  int wait;
+  
+  Song (String s,int nloop,int sleep) {
+
+    som=s;
+    vezes=nloop;
+    wait=sleep;
+  
+  }
+  
+  public void run () {
+	
+	int cont=0;
+	  
+    do {
+      
+      try {
+      
+        playSound(som);
+        sleep(wait);
+       
+      } catch (Exception e) {}
+      
+      cont++;
+      
+    }while (cont<vezes);
+  
+  }
+
+  public static synchronized void playSound(final String arq) {
+        
+    try {
+      
+      AudioInputStream ais = AudioSystem.getAudioInputStream(new File(arq));
+      Clip c = AudioSystem.getClip(AudioSystem.getMixerInfo()[0]);
+      c.open(ais);
+      c.start();
+      
+    } catch (Exception ex) {
+		
+      ex.printStackTrace();
+    
+    }
+    
+  }
+
 }
 
 class Elipse {
@@ -590,6 +657,7 @@ class Teclado extends KeyAdapter {
   JFrame jan;
   boolean sobe=true;
   boolean desce=true;
+  Song bang;
   
   Teclado (Draw aux,JFrame j) {
 	  
@@ -642,6 +710,8 @@ class Teclado extends KeyAdapter {
 		draw.tiro1[0].hitbox = new Rectangle2D.Float(draw.tiro1[0].x,draw.tiro1[0].y,draw.tiro1[0].img.getWidth(null)-10,draw.tiro1[0].img.getHeight(null));
 		draw.cliente.put_pos_disparo1_x(draw.tiro1[0].x);
 		draw.cliente.put_pos_disparo1_y(draw.tiro1[0].y);
+		bang = new Song("Laser.wav",0,0);
+		bang.start();
 		
 	  }
 	  
@@ -651,6 +721,8 @@ class Teclado extends KeyAdapter {
 		draw.tiro1[1].hitbox = new Rectangle2D.Float(draw.tiro1[1].x,draw.tiro1[1].y,draw.tiro1[1].img.getWidth(null)-10,draw.tiro1[1].img.getHeight(null));
 		draw.cliente.put_pos_disparo2_x(draw.tiro1[1].x);
 		draw.cliente.put_pos_disparo2_y(draw.tiro1[1].y);
+		bang = new Song("Laser.wav",0,0);
+		bang.start();
 		
 	  }
 	  
@@ -660,6 +732,8 @@ class Teclado extends KeyAdapter {
 		draw.tiro1[2].hitbox = new Rectangle2D.Float(draw.tiro1[2].x,draw.tiro1[2].y,draw.tiro1[2].img.getWidth(null)-10,draw.tiro1[2].img.getHeight(null));
 		draw.cliente.put_pos_disparo3_x(draw.tiro1[2].x);
 		draw.cliente.put_pos_disparo3_y(draw.tiro1[2].y);
+		bang = new Song("Laser.wav",0,0);
+		bang.start();
 		
 	  }
 	  	
