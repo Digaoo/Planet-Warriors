@@ -163,11 +163,11 @@ public class Cliente extends Thread{
       saida = new DataOutputStream(cliente.getOutputStream()); // Estabelece a saida de dados para o servidor.
       identificador_jogador = recebe_servidor.readInt(); // Recebe o numero de jogador respectivo a cada cliente (vem do servidor).
       do{
-        sleep(50); // faz o envio com intervado de 50 ms para evitar a perda de sincronia e uma possivel sobrecarga da thread.
+        sleep(50); // faz o envio com intervado de 50 ms para evitar a sobrecarga da thread.
         saida.writeBoolean(estado_jogador); // envia o estado do jogador ao servidor.
       } while (!estado_jogador); // segura o cliente enquanto ele nao esta pronto.
       do { // segura o cliente que ja esta pronto enquanto o adversario nao esta pronto.
-        sleep(50); // para manter a sincronia e não sobrecarregar a thread, aguarda 50 ms para nova "requisição".
+        sleep(50); // aguarda 50 ms para nova "requisição" para evitar a sobrecarga da thread.
         pronto_para_inicio = recebe_servidor.readBoolean(); // recebe do servidor se o adversario esta ou nao pronto.
       } while (!pronto_para_inicio); // segura o cliente que ja esta pronto enquanto o adversario nao esta pronto.
       sleep(3000); // aguarda 3 segundos para inicio do servidor para manter a sincronia com o cliente.
