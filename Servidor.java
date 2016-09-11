@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Scanner;
 
 public class Servidor {
-  public static void main(String args[]) throws IOException { // TRATAR O ERRO DE MANEIRA MAIS ADEQUADA!
+  public static void main(String args[]) throws IOException {
 
     ServerSocket servidor = new ServerSocket(12345); // Definida a porta a ser aberta e usada pelo servidor.
     System.out.println("Porta 12345 aberta!"); // Mensagem de sucesso.
@@ -51,12 +51,12 @@ class Servindo extends Thread {
     try{
       distribui_dados[identificador_jogador].writeInt(identificador_jogador); // envia a identificacao ao jogador
       do{
-        sleep(50); // aguardo de 50 ms para o envio de dados, eivtando sobrecarga da thread.
+        sleep(50); // aguardo de 50 ms para o envio de dados, evitando a sobrecarga da thread.
         pronto_para_inicio = recebe_dados_cliente[identificador_jogador].readBoolean(); // recebe do cliente se o jogador esta pronto para o inicio do jogo.
       }while(!pronto_para_inicio); // segura o servidor enquanto o cliente em questao nao esta pronto.
       numero_jogadores_prontos++; // quando um jogador informa que esta pronto, informa ao outro jogador quantos jogadores estao pronto (incluindo ele mesmo se este informou que estava pronto).
       do{
-        sleep(50); // Aguarda 50ms para fazer o envio dos dados, para manter a sincronia e, aparentemente, nao sobrecarregar uma thread.
+        sleep(50); // Aguarda 50ms para fazer o envio dos dados, nao sobrecarregando a thread.
         if(numero_jogadores_prontos == 2){ // não faz envio ao jogador que nao estiver pronto. Evitando, possivelmente, o broken pipe.
           if(identificador_jogador == 0)
             distribui_dados[1].writeBoolean(pronto_para_inicio);
