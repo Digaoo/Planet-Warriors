@@ -203,15 +203,12 @@ public class Cliente extends Thread{
         pos_disparo3_y_adv = recebe_servidor.readInt();
         estado_jogo_adv = recebe_servidor.readBoolean();
 
-        //sleep(30);
       }while(estado_jogo && estado_jogo_adv);
       // finaliza o cliente.
       saida.close();
       recebe_servidor.close();
       cliente.close();
-    }/*catch(InterruptedException e){
-      System.out.println(e);
-    }*/catch(IOException e){
+    }catch(IOException e){
       System.out.println(e);
     }
   }
